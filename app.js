@@ -169,26 +169,31 @@ function getScores(saju) {
 /* =============================================
    Gemini API 호출 — 찰떡 사주풀이
    ============================================= */
-async function getFortuneFromGemini(saju, gender) {
+async function getFortuneFromGemini(saju, gender, name) {
   const today = new Date();
   const dateStr = `${today.getFullYear()}년 ${today.getMonth()+1}월 ${today.getDate()}일`;
   const genderStr = gender === 'male' ? '남성' : '여성';
   const ohangStr = Object.entries(saju.ohang).filter(([,v])=>v>0).map(([k,v])=>`${OHANG_KO[k]} ${v}개`).join(', ');
+  const strokeTotal = getStrokeCount(name);
+  const strokeMeaning = getStrokeMeaning(strokeTotal);
 
   const prompt = `당신은 MZ세대가 열광하는 찰떡 사주 풀이사입니다. 진지하면서도 유머있게, 읽다보면 "이거 완전 나잖아!" 소리가 절로 나오도록 풀이해주세요.
 
 사주 정보:
+- 이름: ${name} (총 획수: ${strokeTotal}획, 기운: ${strokeMeaning} 성격)
 - 일간(나의 기운): ${saju.ilgan}(${CHEONGAN_KO[saju.ilgan]}) — ${OHANG_KO[saju.ilganOhang]} 기운
 - 띠: ${saju.ddi}띠
 - 성별: ${genderStr}
 - 오행 구성: ${ohangStr}
 - 오늘: ${dateStr}
 
+중요: 풀이 전반에 걸쳐 "${name}님"이라고 이름을 자연스럽게 3~4번 호명해주세요. 이름 획수 기운도 풀이에 자연스럽게 녹여주세요.
+
 다음 JSON 형식으로만 답하세요 (마크다운 코드블록 없이 순수 JSON):
 {
   "summary": "오늘 하루를 한 문장으로 찰떡같이 표현 (이모지 포함, 20자 내외, 웃기면서 찰떡인 표현)",
-  "detail": "오늘의 전체 운세를 MZ 감성으로 자세하게 풀이 (5~7문장, 구체적인 상황 묘사 포함, 예: '오늘 점심 뭐 먹을지 30분 고민할 것 같은 기운이에요', '카톡 읽씹 당할 확률 높은 날', 이런 식으로 일상 상황에 빗대서 재밌게)",
-  "friend": "친구 관계 운세 (3~4문장, 구체적인 상황 묘사. 예: 오늘 단톡방에서 어떤 역할을 하게 될지, 친구와 어떤 일이 생길지 등)",
+  "detail": "오늘의 전체 운세를 MZ 감성으로 자세하게 풀이 (5~7문장, ${name}님이라고 호명 포함, 구체적인 상황 묘사 포함, 예: '오늘 점심 뭐 먹을지 30분 고민할 것 같은 기운이에요', '카톡 읽씹 당할 확률 높은 날', 이런 식으로 일상 상황에 빗대서 재밌게)",
+  "friend": "친구 관계 운세 (3~4문장, ${name}님 호명 포함, 구체적인 상황 묘사. 예: 오늘 단톡방에서 어떤 역할을 하게 될지, 친구와 어떤 일이 생길지 등)",
   "family": "가족 관계 운세 (3~4문장, 부모님/형제와의 관계, 집에서의 에너지 등 구체적으로)",
   "work": "직장/학교 운세 (3~4문장, 업무나 공부할 때 어떤 상황이 펼쳐질지 구체적으로)",
   "quote": "오늘 하루를 버티게 해줄 찰떡 한마디 (이모지 포함, 짧고 강렬하게, 웃기거나 공감되는 말)"
@@ -258,11 +263,45 @@ const OHANG_EMOJI = {
 };
 
 /* =============================================
-   상태
+   한자 획수 계산 (이름 기운 분석용)
    ============================================= */
+function getStrokeCount(name) {
+  // 한글 자모 획수 테이블
+  const CHOSUNG_STROKE = [2,5,3,5,4,4,7,3,4,4,6,3,3,2,5,4,4,3,4];
+  const JUNGSUNG_STROKE= [2,2,2,2,2,3,3,3,2,3,3,3,2,2,2,2,3,3,3,2,2];
+  const JONGSUNG_STROKE= [0,2,5,3,3,3,4,7,3,4,4,4,4,6,3,3,3,3,2,5,4,4,3,4,3,4,4];
+
+  let total = 0;
+  for (const ch of name) {
+    const code = ch.charCodeAt(0);
+    if (code >= 0xAC00 && code <= 0xD7A3) {
+      const offset = code - 0xAC00;
+      const cho  = Math.floor(offset / (21 * 28));
+      const jung = Math.floor((offset % (21 * 28)) / 28);
+      const jong = offset % 28;
+      total += (CHOSUNG_STROKE[cho] || 0) + (JUNGSUNG_STROKE[jung] || 0) + (JONGSUNG_STROKE[jong] || 0);
+    }
+  }
+  return total;
+}
+
+function getStrokeMeaning(total) {
+  const r = total % 10;
+  const meanings = {
+    1:'독립적이고 리더십이 강한', 2:'협력과 조화를 중시하는',
+    3:'창의적이고 표현력이 풍부한', 4:'성실하고 안정을 추구하는',
+    5:'변화를 즐기고 자유로운', 6:'책임감 있고 가정적인',
+    7:'지적이고 분석적인', 8:'성공 지향적이고 실용적인',
+    9:'인도주의적이고 넓은 시야를 가진', 0:'완성도 높고 균형잡힌'
+  };
+  return meanings[r] || '독특한 에너지를 가진';
+}
+
+
 let selectedGender = null;
 let currentNumbers = [];
 let currentSaju    = null;
+let currentName    = '';
 
 function selectGender(g) {
   selectedGender = g;
@@ -279,11 +318,15 @@ async function startFortune() {
   const month = parseInt(document.getElementById('birthMonth').value);
   const day   = parseInt(document.getElementById('birthDay').value);
   const hour  = document.getElementById('birthHour').value;
+  const nameRaw = (document.getElementById('userName').value || '').trim();
 
-  if (!year)          { showToast('태어난 년도를 선택해주세요 🎂'); return; }
-  if (!month)         { showToast('태어난 월을 선택해주세요 📅'); return; }
-  if (!day)           { showToast('태어난 날을 선택해주세요 📅'); return; }
-  if (!selectedGender){ showToast('성별을 선택해주세요 🙋'); return; }
+  if (!nameRaw)         { showToast('이름을 입력해주세요 ✍️'); return; }
+  if (!year)            { showToast('태어난 년도를 선택해주세요 🎂'); return; }
+  if (!month)           { showToast('태어난 월을 선택해주세요 📅'); return; }
+  if (!day)             { showToast('태어난 날을 선택해주세요 📅'); return; }
+  if (!selectedGender)  { showToast('성별을 선택해주세요 🙋'); return; }
+
+  currentName = nameRaw;
 
   // 히어로/입력 숨기기
   document.getElementById('heroSection').classList.add('hidden');
@@ -298,7 +341,7 @@ async function startFortune() {
   let fortune;
   try {
     if (GEMINI_API_KEY && GEMINI_API_KEY !== 'YOUR_GEMINI_API_KEY_HERE') {
-      fortune = await getFortuneFromGemini(currentSaju, selectedGender);
+      fortune = await getFortuneFromGemini(currentSaju, selectedGender, currentName);
     } else {
       fortune = getFortuneTemplate(currentSaju);
     }
@@ -325,6 +368,29 @@ function renderResult(saju, fortune, numbers) {
   const today = new Date();
   document.getElementById('todayDate').textContent =
     `${today.getFullYear()}년 ${today.getMonth()+1}월 ${today.getDate()}일`;
+
+  // 이름 배지 추가 (fortuneCard 상단)
+  const fortuneCard = document.getElementById('fortuneCard');
+  let nameBadge = document.getElementById('nameBadge');
+  if (!nameBadge) {
+    nameBadge = document.createElement('div');
+    nameBadge.id = 'nameBadge';
+    nameBadge.className = 'name-badge';
+    fortuneCard.insertBefore(nameBadge, fortuneCard.firstChild);
+  }
+  nameBadge.textContent = `✨ ${currentName}님의 오늘 운세`;
+
+  // 사주 기본 정보 카드에 이름 + 획수 표시
+  const sajuInfoCard = document.getElementById('sajuInfoCard');
+  let strokeEl = document.getElementById('strokeBadge');
+  if (!strokeEl) {
+    strokeEl = document.createElement('div');
+    strokeEl.id = 'strokeBadge';
+    strokeEl.className = 'stroke-badge';
+    sajuInfoCard.querySelector('.ddi-badge').insertAdjacentElement('afterend', strokeEl);
+  }
+  const sc = getStrokeCount(currentName);
+  strokeEl.innerHTML = `✍️ <strong>${currentName}</strong>님 이름 획수 ${sc}획 — ${getStrokeMeaning(sc)} 기운`;
 
   // 오행별 이모지
   const dominant = Object.entries(saju.ohang).sort((a,b)=>b[1]-a[1])[0][0];
@@ -399,6 +465,12 @@ function resetAll() {
   document.getElementById('heroSection').classList.remove('hidden');
   document.getElementById('inputSection').classList.remove('hidden');
   document.getElementById('infoSection').classList.remove('hidden');
+  // 이름 관련 동적 요소 초기화
+  const nb = document.getElementById('nameBadge');
+  if (nb) nb.remove();
+  const sb = document.getElementById('strokeBadge');
+  if (sb) sb.remove();
+  currentName = '';
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -418,7 +490,7 @@ function shareKakao() {
   Kakao.Share.sendDefault({
     objectType: 'feed',
     content: {
-      title: '🍡 찰떡사주 - 내 사주 진짜 너무 찰떡이야',
+      title: `🍡 ${currentName}님의 찰떡사주 - 진짜 너무 찰떡이야`,
       description: '생년월일 입력하면 찰떡같이 맞는 사주풀이 해줘요. 친구한테 공유각!',
       imageUrl: 'https://via.placeholder.com/800x400/FFB3C6/3D2C4E?text=%F0%9F%8D%A1+%EC%B0%B0%EB%96%A1%EC%82%AC%EC%A3%BC',
       link: { mobileWebUrl: window.location.href, webUrl: window.location.href }
@@ -439,7 +511,7 @@ function saveImage() {
     useCORS: true
   }).then(canvas => {
     const link = document.createElement('a');
-    link.download = '찰떡사주_오늘운세.png';
+    link.download = `${currentName}_찰떡사주_오늘운세.png`;
     link.href = canvas.toDataURL('image/png');
     link.click();
     showToast('이미지 저장 완료! 인스타에 올려요 📸');
