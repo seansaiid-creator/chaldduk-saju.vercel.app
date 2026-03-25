@@ -167,7 +167,6 @@
 
       <!-- 내 사주 기본 정보 -->
       <div class="card result-card" id="sajuInfoCard">
-        <div class="card-emoji">☯️</div>
         <h3 class="card-title">나의 사주 정보</h3>
         <div class="saju-pillars" id="sajuPillars"></div>
         <div class="ohang-tags" id="ohangTags"></div>
@@ -199,6 +198,12 @@
         <!-- 오늘의 한마디 -->
         <div class="fortune-quote" id="fortuneQuote"></div>
 
+        <!-- 광고 (한마디 아래, 공유 버튼 위) -->
+        <div class="ad-wrap ad-inline">
+          <p class="ad-label">ADVERTISEMENT</p>
+          <div class="ad-box ad-rect">광고 영역 (336×280)</div>
+        </div>
+
         <!-- 공유 버튼 -->
         <div class="share-area">
           <p class="share-label">📢 친구한테 공유각!</p>
@@ -210,22 +215,23 @@
         </div>
       </div>
 
-      <!-- 광고 1 -->
-      <div class="ad-wrap">
-        <p class="ad-label">ADVERTISEMENT</p>
-        <div class="ad-box ad-rect">광고 영역 (336×280)</div>
-      </div>
-
-      <!-- 행운번호 (보조) -->
+      <!-- 행운번호 (공유 카드 바로 아래, 버튼으로 열기) -->
       <div class="card lucky-card">
-        <div class="card-emoji">🎰</div>
-        <h3 class="card-title">오늘의 행운번호 <span class="sub-badge">보너스</span></h3>
-        <p class="lucky-desc">사주 기운으로 뽑은 번호예요 (재미용!)</p>
-        <div class="lucky-set" id="luckyNumbers"></div>
-        <button class="copy-small-btn" onclick="copyNumbers()">📋 복사</button>
+        <div class="lucky-header" onclick="toggleLucky()">
+          <div class="lucky-header-left">
+            <span class="card-emoji-inline">🎰</span>
+            <span class="lucky-title-text">오늘의 행운번호도 필요해? <span class="sub-badge">보너스</span></span>
+          </div>
+          <span class="lucky-toggle-icon" id="luckyToggleIcon">▼</span>
+        </div>
+        <div class="lucky-body hidden" id="luckyBody">
+          <p class="lucky-desc">사주 기운으로 뽑은 번호예요 (재미용!)</p>
+          <div class="lucky-set" id="luckyNumbers"></div>
+          <button class="copy-small-btn" onclick="copyNumbers()">📋 복사</button>
+        </div>
       </div>
 
-      <!-- 광고 2 -->
+      <!-- 광고 2 (행운번호 아래) -->
       <div class="ad-wrap">
         <p class="ad-label">ADVERTISEMENT</p>
         <div class="ad-box ad-rect">광고 영역 (336×280)</div>
@@ -246,20 +252,6 @@
           <div>
             <h3>찰떡사주란?</h3>
             <p>사주팔자를 MZ 감성으로 풀어주는 서비스예요. 읽다보면 "이거 완전 나잖아" 소리 나와요.</p>
-          </div>
-        </div>
-        <div class="info-row">
-          <span class="info-icon">🔮</span>
-          <div>
-            <h3>어떻게 분석하나요?</h3>
-            <p>생년월일로 사주팔자를 계산하고 AI가 오늘의 운세를 친구한테 얘기하듯 풀어드려요.</p>
-          </div>
-        </div>
-        <div class="info-row">
-          <span class="info-icon">💌</span>
-          <div>
-            <h3>공유하면 더 재밌어요</h3>
-            <p>친구 생년월일로 돌려보고 "야 이거 너 완전 맞다" 하면서 공유해보세요!</p>
           </div>
         </div>
       </div>

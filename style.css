@@ -122,7 +122,7 @@ body {
 /* ===== 히어로 ===== */
 .hero {
   text-align: center;
-  padding: 28px 0 20px;
+  padding: 16px 0 12px;
   animation: fadeUp 0.6s ease both;
 }
 
@@ -631,22 +631,22 @@ body {
 .saju-pillars {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 6px;
+  margin-bottom: 10px;
 }
 
 .pillar {
   background: linear-gradient(145deg, #FFF5F8, #F5F0FF);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 10px 6px;
+  padding: 7px 4px;
   text-align: center;
 }
 
-.pillar-label { font-size: 10px; color: var(--text-dim); margin-bottom: 4px; }
-.pillar-gan   { font-size: 18px; font-weight: 700; color: #D4607A; }
-.pillar-ji    { font-size: 18px; font-weight: 700; color: #7B5FCC; }
-.pillar-ko    { font-size: 10px; color: var(--text-sub); margin-top: 2px; }
+.pillar-label { font-size: 9px; color: var(--text-dim); margin-bottom: 3px; }
+.pillar-gan   { font-size: 14px; font-weight: 700; color: #D4607A; }
+.pillar-ji    { font-size: 14px; font-weight: 700; color: #7B5FCC; }
+.pillar-ko    { font-size: 9px; color: var(--text-sub); margin-top: 1px; }
 
 .ohang-tags {
   display: flex;
@@ -676,6 +676,9 @@ body {
   color: var(--text-sub);
   font-weight: 500;
 }
+
+.result-card { padding: 16px 16px; }
+.result-card .card-title { margin-bottom: 12px; font-size: 17px; }
 
 /* ===== 행운번호 (보조) ===== */
 .lucky-card {
@@ -808,6 +811,50 @@ body {
 
 .info-row h3 { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
 .info-row p  { font-size: 12px; color: var(--text-sub); line-height: 1.7; }
+
+/* ===== 행운번호 토글 ===== */
+.lucky-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.lucky-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-emoji-inline { font-size: 22px; }
+
+.lucky-title-text {
+  font-family: 'Gaegu', cursive;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.lucky-toggle-icon {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.lucky-body {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--border);
+}
+
+/* 광고 인라인 (카드 내부) */
+.ad-inline {
+  margin: 16px -20px -24px;
+  padding: 12px 0 0;
+  border-top: 1px dashed var(--border);
+  overflow: hidden;
+}
 
 /* ===== 푸터 ===== */
 .footer {

@@ -23,7 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const firstOpt = document.createElement('option');
   firstOpt.value = ''; firstOpt.textContent = '선택';
   yearSel.appendChild(firstOpt);
-  for (let y = 2007; y >= 1930; y--) {
+  const maxYear = new Date().getFullYear() + 1;
+  for (let y = maxYear; y >= 1930; y--) {
     const opt = document.createElement('option');
     opt.value = y; opt.textContent = y;
     yearSel.appendChild(opt);
@@ -177,7 +178,7 @@ async function getFortuneFromGemini(saju, gender, name) {
   const strokeTotal = getStrokeCount(name);
   const strokeMeaning = getStrokeMeaning(strokeTotal);
 
-  const prompt = `당신은 MZ세대가 열광하는 찰떡 사주 풀이사입니다. 진지하면서도 유머있게, 읽다보면 "이거 완전 나잖아!" 소리가 절로 나오도록 풀이해주세요.
+  const prompt = `당신은 MZ세대 사이에서 입소문 난 찰떡 사주 풀이사예요. 진짜 친한 친구가 카톡으로 사주 봐주는 느낌으로, 읽다가 "야 이거 완전 나잖아 ㅋㅋㅋ" 소리 나오게 써주세요.
 
 사주 정보:
 - 이름: ${name} (총 획수: ${strokeTotal}획, 기운: ${strokeMeaning} 성격)
@@ -187,16 +188,21 @@ async function getFortuneFromGemini(saju, gender, name) {
 - 오행 구성: ${ohangStr}
 - 오늘: ${dateStr}
 
-중요: 풀이 전반에 걸쳐 "${name}님"이라고 이름을 자연스럽게 3~4번 호명해주세요. 이름 획수 기운도 풀이에 자연스럽게 녹여주세요.
+스타일 가이드:
+- "${name}님"이라고 이름을 자연스럽게 3~4번 호명 (너무 자주 쓰면 어색함)
+- MZ 언어 사용: ㅋㅋ, ㄹㅇ, 개-, 찐-, 레전드, 갓생, 역체공 등 자연스럽게
+- 구체적인 일상 상황 묘사: "점심 메뉴 못 고르는 날", "카톡 읽씹 당할 수 있음", "갑자기 TMI 터지는 날" 같은 찰떡 표현
+- 이름 획수 기운도 풀이에 자연스럽게 녹여주기
+- 절대 딱딱하게 쓰지 말기, 공감되고 웃기게!
 
 다음 JSON 형식으로만 답하세요 (마크다운 코드블록 없이 순수 JSON):
 {
-  "summary": "오늘 하루를 한 문장으로 찰떡같이 표현 (이모지 포함, 20자 내외, 웃기면서 찰떡인 표현)",
-  "detail": "오늘의 전체 운세를 MZ 감성으로 자세하게 풀이 (5~7문장, ${name}님이라고 호명 포함, 구체적인 상황 묘사 포함, 예: '오늘 점심 뭐 먹을지 30분 고민할 것 같은 기운이에요', '카톡 읽씹 당할 확률 높은 날', 이런 식으로 일상 상황에 빗대서 재밌게)",
-  "friend": "친구 관계 운세 (3~4문장, ${name}님 호명 포함, 구체적인 상황 묘사. 예: 오늘 단톡방에서 어떤 역할을 하게 될지, 친구와 어떤 일이 생길지 등)",
-  "family": "가족 관계 운세 (3~4문장, 부모님/형제와의 관계, 집에서의 에너지 등 구체적으로)",
-  "work": "직장/학교 운세 (3~4문장, 업무나 공부할 때 어떤 상황이 펼쳐질지 구체적으로)",
-  "quote": "오늘 하루를 버티게 해줄 찰떡 한마디 (이모지 포함, 짧고 강렬하게, 웃기거나 공감되는 말)"
+  "summary": "오늘 하루 한 줄 찰떡 요약 (이모지 포함, 20자 내외, 읽자마자 공감 폭발하는 표현. 예: '오늘 점심 혼밥각인데 이게 또 행복함 🍜')",
+  "detail": "오늘 전체 운세 MZ 감성으로 찰떡 풀이 (5~7문장. 예시처럼 써주세요: '${name}님 오늘 아침부터 기운이 좀 묘해요 ㅋㅋ 뭔가 일이 생길 것 같은 그 느낌 있잖아요? ㄹㅇ로 오늘 뜬금없이 연락 올 수 있음. 점심은 혼밥이 갓생각이고 오후엔 괜히 집중 잘 되는 날이에요. 근데 저녁에 갑자기 감성 폭발할 수 있으니까 SNS 올리기 전에 한 번만 더 생각해요 😂')",
+  "friend": "친구 관계 찰떡 운세 (3~4문장, 단톡방 상황·친구 연락·약속 등 구체적인 MZ 상황으로. 예: '오늘 단톡방에서 ${name}님이 분위기 메이커 될 것 같아요 ㅋㅋ 괜히 짤 하나 올렸는데 다들 반응 폭발하는 날')",
+  "family": "가족 관계 찰떡 운세 (3~4문장, 부모님 잔소리·형제 눈치·집안 분위기 등 현실적인 상황으로 재밌게)",
+  "work": "직장/학교 찰떡 운세 (3~4문장, 회의·과제·발표·야근 등 구체적인 상황으로. 갓생 or 현실 찰떡하게)",
+  "quote": "오늘 버티게 해줄 찰떡 한마디 (이모지 포함, 짧고 강렬하게. 예: '🍡 오늘 하루도 찰떡처럼 붙어서 버텨요')"
 }`;
 
   const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
@@ -524,6 +530,17 @@ function copyNumbers() {
   navigator.clipboard.writeText(text)
     .then(() => showToast('행운번호 복사 완료! 📋'))
     .catch(() => showToast('복사 실패했어요'));
+}
+
+/* =============================================
+   행운번호 토글
+   ============================================= */
+function toggleLucky() {
+  const body = document.getElementById('luckyBody');
+  const icon = document.getElementById('luckyToggleIcon');
+  const isHidden = body.classList.contains('hidden');
+  body.classList.toggle('hidden', !isHidden);
+  icon.textContent = isHidden ? '▲' : '▼';
 }
 
 /* =============================================
