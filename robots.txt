@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /privacy
+Disallow: /terms
+
+Sitemap: https://chaldduk-saju.vercel.app/sitemap.xml
