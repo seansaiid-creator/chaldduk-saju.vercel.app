@@ -154,10 +154,10 @@
         <div class="form-group">
           <label class="form-label">🙋 성별</label>
           <div class="gender-row">
-            <button class="gender-btn" data-gender="male" onclick="selectGender('male')">
+            <button class="gender-btn" data-gender="male" type="button">
               <span>🧑</span> 남자
             </button>
-            <button class="gender-btn" data-gender="female" onclick="selectGender('female')">
+            <button class="gender-btn" data-gender="female" type="button">
               <span>👩</span> 여자
             </button>
           </div>
@@ -183,7 +183,7 @@
           </select>
         </div>
 
-        <button class="cta-btn" onclick="startFortune()">
+        <button class="cta-btn" id="startFortuneBtn" type="button">
           <span>🍡</span> 내 찰떡사주 보기
         </button>
       </div>
@@ -249,16 +249,16 @@
         <div class="share-area">
           <p class="share-label">📢 친구한테 공유각!</p>
           <div class="share-btns">
-            <button class="share-btn kakao-btn" onclick="shareKakao()">💬 카카오톡</button>
-            <button class="share-btn save-btn" onclick="saveImage()">📸 이미지 저장</button>
+            <button class="share-btn kakao-btn" id="shareKakaoBtn" type="button">💬 카카오톡</button>
+            <button class="share-btn save-btn" id="saveImageBtn" type="button">📸 이미지 저장</button>
           </div>
-          <button class="share-btn copy-btn full-btn" onclick="copyLink()">🔗 링크 복사</button>
+          <button class="share-btn copy-btn full-btn" id="copyLinkBtn" type="button">🔗 링크 복사</button>
         </div>
       </div>
 
       <!-- 행운번호 (공유 카드 바로 아래, 버튼으로 열기) -->
       <div class="card lucky-card">
-        <div class="lucky-header" onclick="toggleLucky()">
+        <div class="lucky-header" id="luckyToggle" role="button" tabindex="0" aria-expanded="false">
           <div class="lucky-header-left">
             <span class="card-emoji-inline">🎰</span>
             <span class="lucky-title-text">오늘의 행운번호도 필요해? <span class="sub-badge">보너스</span></span>
@@ -268,7 +268,7 @@
         <div class="lucky-body hidden" id="luckyBody">
           <p class="lucky-desc">사주 기운으로 뽑은 번호예요 (재미용!)</p>
           <div class="lucky-set" id="luckyNumbers"></div>
-          <button class="copy-small-btn" onclick="copyNumbers()">📋 복사</button>
+          <button class="copy-small-btn" id="copyNumbersBtn" type="button">📋 복사</button>
         </div>
       </div>
 
@@ -280,7 +280,7 @@
 
       <!-- 다시보기 -->
       <div class="reset-area">
-        <button class="reset-btn" onclick="resetAll()">🔄 다시 보기</button>
+        <button class="reset-btn" id="resetAllBtn" type="button">🔄 다시 보기</button>
       </div>
 
     </section>

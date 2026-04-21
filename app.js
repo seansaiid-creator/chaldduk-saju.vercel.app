@@ -4,7 +4,6 @@
    ============================================= */
 
 // ⚠️ 본인의 Gemini API 키 입력
-const GEMINI_API_KEY = 'AIzaSyBaCcazx7JMEw1p4dVyA_WmRs6uwdqxeC8';
 
 // ⚠️ 카카오 앱 키
 const KAKAO_APP_KEY = '7b87b3bb674e9bec0fd123f31a4e6e24';
@@ -49,7 +48,30 @@ document.addEventListener('DOMContentLoaded', () => {
   updateDays();
   document.getElementById('birthMonth').addEventListener('change', updateDays);
   yearSel.addEventListener('change', updateDays);
+  bindUiEvents();
 });
+
+function bindUiEvents() {
+  document.querySelectorAll('.gender-btn').forEach((btn) => {
+    btn.addEventListener('click', () => selectGender(btn.dataset.gender));
+  });
+
+  document.getElementById('startFortuneBtn')?.addEventListener('click', startFortune);
+  document.getElementById('shareKakaoBtn')?.addEventListener('click', shareKakao);
+  document.getElementById('saveImageBtn')?.addEventListener('click', saveImage);
+  document.getElementById('copyLinkBtn')?.addEventListener('click', copyLink);
+  document.getElementById('copyNumbersBtn')?.addEventListener('click', copyNumbers);
+  document.getElementById('resetAllBtn')?.addEventListener('click', resetAll);
+
+  const luckyToggle = document.getElementById('luckyToggle');
+  luckyToggle?.addEventListener('click', toggleLucky);
+  luckyToggle?.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      toggleLucky();
+    }
+  });
+}
 
 /* =============================================
    사주 계산
@@ -205,20 +227,16 @@ async function getFortuneFromGemini(saju, gender, name) {
   "quote": "오늘 버티게 해줄 찰떡 한마디 (이모지 포함, 짧고 강렬하게. 예: '🍡 오늘 하루도 찰떡처럼 붙어서 버텨요')"
 }`;
 
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+  const res = await fetch('/api/fortune', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.95, maxOutputTokens: 1000 }
+      prompt
     })
   });
 
   if (!res.ok) throw new Error('API 오류');
-  const data = await res.json();
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-  const clean = text.replace(/```json|```/g, '').trim();
-  return JSON.parse(clean);
+  return res.json();
 }
 
 /* =============================================
@@ -346,11 +364,7 @@ async function startFortune() {
   // 운세 가져오기
   let fortune;
   try {
-    if (GEMINI_API_KEY && GEMINI_API_KEY !== 'YOUR_GEMINI_API_KEY_HERE') {
-      fortune = await getFortuneFromGemini(currentSaju, selectedGender, currentName);
-    } else {
-      fortune = getFortuneTemplate(currentSaju);
-    }
+    fortune = await getFortuneFromGemini(currentSaju, selectedGender, currentName);
   } catch(e) {
     console.warn('Gemini 실패, 템플릿 사용:', e);
     fortune = getFortuneTemplate(currentSaju);
@@ -365,6 +379,48 @@ async function startFortune() {
 
   renderResult(currentSaju, fortune, currentNumbers);
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function clearChildren(node) {
+  node.replaceChildren();
+}
+
+function appendDiv(parent, className, text) {
+  const el = document.createElement('div');
+  if (className) el.className = className;
+  if (text !== undefined) el.textContent = text;
+  parent.appendChild(el);
+  return el;
+}
+
+function renderStrokeBadge(target, name, count, meaning) {
+  clearChildren(target);
+  target.append('✍️ ');
+  const strong = document.createElement('strong');
+  strong.textContent = name;
+  target.appendChild(strong);
+  target.append(`님 이름 획수 ${count}획 — ${meaning} 기운`);
+}
+
+function renderFortuneSections(target, fortune) {
+  clearChildren(target);
+
+  [
+    { className: 'friend', title: '👯 친구 관계', text: fortune.friend },
+    { className: 'family', title: '🏠 가족 관계', text: fortune.family },
+    { className: 'work', title: '💼 직장/학교', text: fortune.work }
+  ].forEach((section) => {
+    const item = appendDiv(target, `fortune-section-item ${section.className}`);
+    appendDiv(item, 'section-title', section.title);
+    appendDiv(item, 'section-text', section.text);
+  });
+}
+
+function renderLuckyNumbers(target, numbers, ballClass) {
+  clearChildren(target);
+  numbers.forEach((n) => {
+    appendDiv(target, `lucky-ball ${ballClass(n)}`, String(n));
+  });
 }
 
 /* =============================================
@@ -396,7 +452,7 @@ function renderResult(saju, fortune, numbers) {
     sajuInfoCard.querySelector('.ddi-badge').insertAdjacentElement('afterend', strokeEl);
   }
   const sc = getStrokeCount(currentName);
-  strokeEl.innerHTML = `✍️ <strong>${currentName}</strong>님 이름 획수 ${sc}획 — ${getStrokeMeaning(sc)} 기운`;
+  renderStrokeBadge(strokeEl, currentName, sc, getStrokeMeaning(sc));
 
   // 오행별 이모지
   const dominant = Object.entries(saju.ohang).sort((a,b)=>b[1]-a[1])[0][0];
@@ -426,40 +482,27 @@ function renderResult(saju, fortune, numbers) {
 
   // 점수
   const scores = getScores(saju);
-  document.getElementById('fortuneScores').innerHTML = scores.map(s => `
-    <div class="score-item">
-      <div class="score-label">${s.label}</div>
-      <div class="score-emoji">${s.emoji}</div>
-      <div class="score-val">${s.text}</div>
-    </div>
-  `).join('');
+  const scoreGrid = document.getElementById('fortuneScores');
+  clearChildren(scoreGrid);
+  scores.forEach((s) => {
+    const item = appendDiv(scoreGrid, 'score-item');
+    appendDiv(item, 'score-label', s.label);
+    appendDiv(item, 'score-emoji', s.emoji);
+    appendDiv(item, 'score-val', s.text);
+  });
 
   // 상세 풀이
   document.getElementById('fortuneDetail').textContent = fortune.detail;
 
   // 친구/가족/직장
-  document.getElementById('fortuneSections').innerHTML = `
-    <div class="fortune-section-item friend">
-      <div class="section-title">👯 친구 관계</div>
-      <div class="section-text">${fortune.friend}</div>
-    </div>
-    <div class="fortune-section-item family">
-      <div class="section-title">🏠 가족 관계</div>
-      <div class="section-text">${fortune.family}</div>
-    </div>
-    <div class="fortune-section-item work">
-      <div class="section-title">💼 직장/학교</div>
-      <div class="section-text">${fortune.work}</div>
-    </div>
-  `;
+  renderFortuneSections(document.getElementById('fortuneSections'), fortune);
 
   // 한마디
   document.getElementById('fortuneQuote').textContent = fortune.quote;
 
   // 행운번호
   const ballClass = n => n<=10?'ball-1':n<=20?'ball-2':n<=30?'ball-3':n<=40?'ball-4':'ball-5';
-  document.getElementById('luckyNumbers').innerHTML = numbers
-    .map(n=>`<div class="lucky-ball ${ballClass(n)}">${n}</div>`).join('');
+  renderLuckyNumbers(document.getElementById('luckyNumbers'), numbers, ballClass);
 }
 
 /* =============================================
@@ -538,8 +581,10 @@ function copyNumbers() {
 function toggleLucky() {
   const body = document.getElementById('luckyBody');
   const icon = document.getElementById('luckyToggleIcon');
+  const toggle = document.getElementById('luckyToggle');
   const isHidden = body.classList.contains('hidden');
   body.classList.toggle('hidden', !isHidden);
+  if (toggle) toggle.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
   icon.textContent = isHidden ? '▲' : '▼';
 }
 
